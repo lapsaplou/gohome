@@ -39,7 +39,6 @@ func main() {
 
 	// dsn := "root:@tcp(127.0.0.1:3306)/gohome?charset=utf8mb4&parseTime=True&loc=Local"
 	dsn := "root:@tcp(host.docker.internal:3306)/gohome?charset=utf8mb4&parseTime=True&loc=Local"
-
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -53,13 +52,6 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.GET("/", func(c echo.Context) error {
-		return c.HTML(http.StatusOK, "Hello, Docker! <3")
-	})
-
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, struct{ Status string }{Status: "OK"})
-	})
 
 	e.POST("/create_todo", func(c echo.Context) error {
 		newTodo := new(Todo)
@@ -75,14 +67,13 @@ func main() {
 		return c.JSON(http.StatusOK, struct{ Status string }{Status: "OK"})
 	})
 
+
 	e.DELETE("/delete_todo", func(c echo.Context) error {
 		deleteTodo := new(DeleteTodo)
 		if err := c.Bind(&deleteTodo); err != nil {
 			log.Fatalln(err)
 			return c.JSON(http.StatusBadRequest, err)
 		}
-
-		log.Print(deleteTodo)
 
 		deleteError := db.Delete(&Todo{}, deleteTodo.TodoId).Error
 		if deleteError != nil{
@@ -107,6 +98,7 @@ func main() {
 
 		return c.JSON(http.StatusOK, response)
 	})
+
 
 	e.PUT("/update_todo", func(c echo.Context) error {
 		updateTodo := new(UpdateTodo)
@@ -136,13 +128,4 @@ func main() {
 	}
 
 	e.Logger.Fatal(e.Start(":" + httpPort))
-}
-
-// Simple implementation of an integer minimum
-// Adapted from: https://gobyexample.com/testing-and-benchmarking
-func IntMin(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
